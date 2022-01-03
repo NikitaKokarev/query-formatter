@@ -450,22 +450,3 @@ class QueryFormatter(string.Formatter):
             tuple: output item
         """
         return super(QueryFormatter, self).format_field(value or str(), str()), True
-
-
-#######################################
-################ОТЛАДКА################
-#######################################
-
-# 'contractor'
-kwargs = {
-    'exclude_assignee_ids': 444,
-    'client_type': 'contractor',
-    'contractor': 'contractor'
-} 
-
-sf = QueryFormatter(SqlEscaper())
-found_ids = sf.format(
-    """SELECT_BLOCK, FROM_BLOCK, WHERE_BLOCK({exclude_assignee_ids:if:some_query=TRUE}, {client_type:eq:contractor:some_query=TRUE})""",
-    **kwargs
-)
-print(found_ids)
