@@ -8,11 +8,13 @@ import uuid
 from datetime import datetime, date
 from .query_formatter import cast_to_type, SqlEscaper, QueryFormatter
 
+QF = QueryFormatter(SqlEscaper())
+
 
 def unittest_main():
     """ Run unittest suite
-    """    
-    unittest.main()
+    """
+    unittest.main(module=__name__, exit=False)
 
 
 class TestQueryFormatterMethods(unittest.TestCase):
@@ -64,60 +66,59 @@ class TestQueryFormatterMethods(unittest.TestCase):
             self.assertEqual(SqlEscaper.get_condition(value, condition), ans)
 
     def test_format_field(self):
-        sf = QueryFormatter(SqlEscaper())
         # in
         self.assertEqual(
-            sf.format_field('0', "in:2,1,0:... AND TRUE ...", None),
+            QF.format_field('0', "in:2,1,0:... AND TRUE ...", None),
             ("... AND TRUE ...", False)
         )
         # !in
         self.assertEqual(
-            sf.format_field('cotton', "!in:wool,polyester,silk,cotton:... AND FALSE ...", None),
+            QF.format_field('cotton', "!in:wool,polyester,silk,cotton:... AND FALSE ...", None),
             (str(), False)
         )
         # eq
         self.assertEqual(
-            sf.format_field(0, 'eq:0:... AND TRUE ...', None),
+            QF.format_field(0, 'eq:0:... AND TRUE ...', None),
             ("... AND TRUE ...", False)
         )
         # !eq
         self.assertEqual(
-            sf.format_field('cotton', '!eq:cotton:... AND FALSE ...', None),
+            QF.format_field('cotton', '!eq:cotton:... AND FALSE ...', None),
             (str(), False)
         )
         # gt
         self.assertEqual(
-            sf.format_field(2, 'gt:0:... AND TRUE ...', None),
+            QF.format_field(2, 'gt:0:... AND TRUE ...', None),
             ("... AND TRUE ...", False)
         )
         # lt
         self.assertEqual(
-            sf.format_field(False, 'lt:True:... AND TRUE ...', None),
+            QF.format_field(False, 'lt:True:... AND TRUE ...', None),
             ("... AND TRUE ...", False)
         )
         # if
         self.assertEqual(
-            sf.format_field(False, 'if:... AND FALSE ...', None),
+            QF.format_field(False, 'if:... AND FALSE ...', None),
             (str(), False)
         )
         # !if
         self.assertEqual(
-            sf.format_field('False', '!if:... AND FALSE ...', None),
+            QF.format_field('False', '!if:... AND FALSE ...', None),
             (str(), False)
         )
         # tmpl
         self.assertEqual(
-            sf.format_field('SELECT * FROM Contractor WHERE "OurClient" IS TRUE', 'tmpl', None),
+            QF.format_field('SELECT * FROM Contractor WHERE "OurClient" IS TRUE', 'tmpl', None),
             ('SELECT * FROM Contractor WHERE "OurClient" IS TRUE', True)
         )
         # exists
         self.assertEqual(
-            sf.format_field([0, 'wool', 'None'], 'exists:None:... AND TRUE ...', None),
+            QF.format_field([0, 'wool', 'None'], 'exists:None:... AND TRUE ...', None),
             ('... AND TRUE ...', False)
         )
         # !exists
         self.assertEqual(
-            sf.format_field([0, 'wool', 'None'], '!exists:bobcat:... AND TRUE ...', None),
+            QF.format_field([0, 'wool', 'None'], '!exists:bobcat:... AND TRUE ...', None),
             ('... AND TRUE ...', False)
         )
         # include
@@ -138,7 +139,7 @@ class TestQueryFormatterMethods(unittest.TestCase):
             'pattern0': pattern0
         }
         self.assertEqual(
-            sf.format(tmpl, **kwargs),
+            QF.format(tmpl, **kwargs),
             ans_tmpl
         )
         # repeat
@@ -151,7 +152,7 @@ class TestQueryFormatterMethods(unittest.TestCase):
         }
         ans_tmpl = """SELECT_BLOCK,FROM_BLOCK,WHERE_BLOCK(... OR ...... AND TRUE ... AND ... AND TRUE ...... OR ...... OR FALSE ...UNION ALL... OR ...... AND TRUE ... AND ... AND TRUE ...... OR ...... OR NONE ...)"""
         self.assertEqual(
-            sf.format(tmpl, **kwargs),
+            QF.format(tmpl, **kwargs),
             ans_tmpl
         )
 
@@ -171,10 +172,4 @@ class TestQueryFormatterMethods(unittest.TestCase):
             FROM_BLOCK,
             WHERE_BLOCK(some_query=TRUE, some_query=TRUE)
         """
-        
-        sf = QueryFormatter(SqlEscaper())
-        self.assertEqual(sf.format(tmpl, **kwargs), ans)
-
-
-# a = unittest.main()
-# print(a)
+        self.assertEqual(QF.format(tmpl, **kwargs), ans)
