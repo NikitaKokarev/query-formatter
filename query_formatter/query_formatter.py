@@ -64,7 +64,7 @@ class SqlEscaper():
             type_name == 'time': lambda: f"'{value}'::time",
             type_name == 'UUID': lambda: f"'{value}'::uuid",
             type_name == 'str': lambda: value.replace("'", "''"),
-            type_name in ('list', 'set'): lambda: ', '.join([cls.escape_literal(item) for item in value])
+            type_name in ('list', 'tuple', 'set'): lambda: ', '.join([cls.escape_literal(item) for item in value])
         }.get(True)
         
         if escape_literal_func is None:
@@ -85,11 +85,11 @@ class SqlEscaper():
         """
         type_name = type(value).__name__
         if type_name == 'NoneType':
-            cond_res = 'IS NULL'
+            res = 'IS NULL'
         else:
-            cond_res = f'{condition} {cls.escape_literal(value)}'
+            res = cls.escape_literal(value)
 
-        return cond_res
+        return f'{condition} {res}'
 
 
 class QueryFormatter(string.Formatter):
@@ -192,7 +192,7 @@ class QueryFormatter(string.Formatter):
             value = value()
 
         format_func = {
-            spec.startswith('include:'): lambda: self.format_include_value(value),
+            spec.startswith('include'): lambda: self.format_include_value(value, kwargs),
             spec.startswith('repeat:'): lambda: self.format_repeat_value(value, spec, kwargs),
             spec.startswith('in:'): lambda: self.format_in_value(value, spec, is_contained=True),
             spec.startswith('!in:'): lambda: self.format_in_value(value, spec, is_contained=False),
@@ -204,7 +204,7 @@ class QueryFormatter(string.Formatter):
             spec.startswith('lt:'): lambda: self.format_lt_value(value, spec),
             spec.startswith('if:'): lambda: self.format_if_value(value, spec),
             spec.startswith('!if:'): lambda: self.format_not_if_value(value, spec),
-            spec.startswith('tmpl:'): lambda: self.format_tmpl_value(value)
+            spec.startswith('tmpl'): lambda: self.format_tmpl_value(value)
         }.get(True)
 
         if format_func is None:
@@ -240,7 +240,7 @@ class QueryFormatter(string.Formatter):
         return param_list[2] if value_cond else str(), False
 
     def format_default_value(self, value, spec):
-        """ format the field value to default.
+        """ Format the field value to default.
 
         Args:
             value (any type): the value of the variable
@@ -253,8 +253,8 @@ class QueryFormatter(string.Formatter):
             value = self.escape_class.escape_literal(value)
         return super(QueryFormatter, self).format_field(value, spec), True
 
-    def format_include_value(self, value):
-        """ format the field value with included value.
+    def format_include_value(self, value, kwargs):
+        """ Format the field value with included value. Formatting patern using an another formatting patern.
 
         Args:
             value (any type): the value of the variable
@@ -271,7 +271,7 @@ class QueryFormatter(string.Formatter):
         return self.format(value or str(), **param_dict), True
 
     def format_repeat_value(self, value, spec, kwargs):
-        """ format the field value with repeated value.
+        """ Format the field value with repeated value.
 
         Args:
             value (any type): the value of the variable
@@ -299,7 +299,7 @@ class QueryFormatter(string.Formatter):
         return param_list[1].join(res_list), True
 
     def format_in_value(self, value, spec, is_contained):
-        """ format the field value if it is in the specified value.
+        """ Format the field value if it is in the specified value.
 
         Args:
             value (any type): the value of the variable
@@ -331,7 +331,7 @@ class QueryFormatter(string.Formatter):
         return item
 
     def format_exists_value(self, value, spec):
-        """ format the field value if the value exists.
+        """ Format the field value if the value exists.
 
         Args:
             value (any type): the value of the variable
@@ -341,11 +341,11 @@ class QueryFormatter(string.Formatter):
             tuple: output item
         """
         param_list = self.get_param_list(spec)
-        value_cond = type(value).__name__ == 'list' and param_list[1] in value
+        value_cond = type(value).__name__ in ('list', 'tuple') and param_list[1] in value
         return self.get_compared_value(param_list, value_cond)
 
     def format_not_exists_value(self, value, spec):
-        """ format the field value if the value doesn't exist.
+        """ Format the field value if the value doesn't exist.
 
         Args:
             value (any type): the value of the variable
@@ -355,11 +355,11 @@ class QueryFormatter(string.Formatter):
             tuple: output item
         """
         param_list = self.get_param_list(spec)
-        value_cond = type(value).__name__ != 'list' or not param_list[1] in value
+        value_cond = not (type(value).__name__ in ('list', 'tuple') and param_list[1] in value)
         return self.get_compared_value(param_list, value_cond)
 
     def format_eq_value(self, value, spec):
-        """ format the field value if the value has equation.
+        """ Format the field value if the value has equation.
 
         Args:
             value (any type): the value of the variable
@@ -373,7 +373,7 @@ class QueryFormatter(string.Formatter):
         return self.get_compared_value(param_list, value_cond)
 
     def format_not_eq_value(self, value, spec):
-        """ format the field value if the value has't equation.
+        """ Format the field value if the value has't equation.
 
         Args:
             value (any type): the value of the variable
@@ -387,7 +387,7 @@ class QueryFormatter(string.Formatter):
         return self.get_compared_value(param_list, value_cond)
 
     def format_gt_value(self, value, spec):
-        """ format the field value if the value is greater than another value.
+        """ Format the field value if the value is greater than another value.
 
         Args:
             value (any type): the value of the variable
@@ -401,7 +401,7 @@ class QueryFormatter(string.Formatter):
         return self.get_compared_value(param_list, value_cond)
 
     def format_lt_value(self, value, spec):
-        """ format the field value if the value is lower than another value.
+        """ Format the field value if the value is lower than another value.
 
         Args:
             value (any type): the value of the variable
@@ -416,7 +416,7 @@ class QueryFormatter(string.Formatter):
 
     @staticmethod
     def format_if_value(value, spec):
-        """ format the field value if the value is not None.
+        """ Format the field value if the value is not None.
 
         Args:
             value (any type): the value of the variable
@@ -429,7 +429,7 @@ class QueryFormatter(string.Formatter):
 
     @staticmethod
     def format_not_if_value(value, spec):
-        """ format the field value if the value is None.
+        """ Format the field value if the value is None.
 
         Args:
             value (any type): the value of the variable
@@ -441,7 +441,7 @@ class QueryFormatter(string.Formatter):
         return spec.partition(':')[-1] if not value else str(), False
 
     def format_tmpl_value(self, value):
-        """ format the field value if the value is a template.
+        """ Format the field value if the value is a template.
 
         Args:
             value (any type): the value of the variable
