@@ -1,7 +1,7 @@
 # query-formatter
 ## Easy way to format sql templates in python
-![img](https://support.musicgateway.com/wp-content/uploads/2021/10/synthwave-background-1.jpg)
-![img](https://support.musicgateway.com/wp-content/uploads/2021/10/synthwave-background-1.jpg)
+![img](https://github.com/NikitaKokarev/query-formatter/blob/f40bb50528ba1566baa9b39291e3f0a4d919bf25/query_formatter/images/select%20%20from%20table_name%20where%20id%20=%201%20and%20%7B%7D%20(1))
+![img](https://github.com/NikitaKokarev/query-formatter/blob/f40bb50528ba1566baa9b39291e3f0a4d919bf25/query_formatter/images/select%20%20from%20table_name%20where%20id%20=%201%20and%20%7B%7D.png)
 ___
 ## How to use:
 Write your SQL templates in string format and join them with this formatter using string literals in the templates body.
