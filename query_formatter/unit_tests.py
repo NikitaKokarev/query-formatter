@@ -155,6 +155,16 @@ class TestQueryFormatterMethods(unittest.TestCase):
             QF.format(tmpl, **kwargs),
             ans_tmpl
         )
+        # idf
+        tmpl = 'SELECT * FROM Contractor WHERE "OurClient" IS TRUE GROUP BY {person_id:idf}'
+        kwargs = {
+            'person_id': 'PersonId'
+        }
+        ans_tmpl = 'SELECT * FROM Contractor WHERE "OurClient" IS TRUE GROUP BY PersonId'
+        self.assertEqual(
+            QF.format(tmpl, **kwargs),
+            ans_tmpl
+        )
 
     def test_vformat(self):
         kwargs = {

@@ -204,7 +204,8 @@ class QueryFormatter(string.Formatter):
             spec.startswith('lt:'): lambda: self.format_lt_value(value, spec),
             spec.startswith('if:'): lambda: self.format_if_value(value, spec),
             spec.startswith('!if:'): lambda: self.format_not_if_value(value, spec),
-            spec.startswith('tmpl'): lambda: self.format_tmpl_value(value)
+            spec.startswith('tmpl'): lambda: self.format_tmpl_value(value),
+            spec.startswith('idf'): lambda: self.format_field_name(value)
         }.get(True)
 
         if format_func is None:
@@ -441,7 +442,7 @@ class QueryFormatter(string.Formatter):
         return spec.partition(':')[-1] if not value else str(), False
 
     def format_tmpl_value(self, value):
-        """ Format the field value if the value is a template.
+        """ Format the field value if the value is a template. Format query with trimmed quotes.
 
         Args:
             value (any type): the value of the variable
@@ -450,3 +451,14 @@ class QueryFormatter(string.Formatter):
             tuple: output item
         """
         return super(QueryFormatter, self).format_field(value or str(), str()), True
+    
+    def format_field_name(self, value):
+        """ Format string as a valid field name.
+
+        Args:
+            value (any type): field name
+
+        Returns:
+            tuple: output item
+        """
+        return super(QueryFormatter, self).format_field(value, str()), True
