@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
- 
+
 """
 INIT QUERY FORMATTER
 ~~~~~~~~~~~~~~~~~~~~~
@@ -9,4 +9,3 @@ INIT QUERY FORMATTER
 __author__ = 'kokarev.nv'
 
 from .query_formatter import cast_to_type, SqlEscaper, QueryFormatter
-from .unit_tests import unittest_main

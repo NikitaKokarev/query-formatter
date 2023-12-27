@@ -7,11 +7,11 @@ from datetime import datetime
 import string
 
 
-def cast_to_type(value, to_type):    
+def cast_to_type(value, to_type):
     """ Converts the value to the specified type.
 
     Args:
-        value (any type): variables value to the cast 
+        value (any type): variables value to the cast
         to_type (str): name of cast operation
 
     Raises:
@@ -19,7 +19,7 @@ def cast_to_type(value, to_type):
 
     Returns:
         any type: casted value of a variable
-    """    
+    """
     cast_type_func = {
         to_type == 'str': lambda: value,
         to_type == 'int': lambda: int(value),
@@ -38,7 +38,7 @@ def cast_to_type(value, to_type):
     return cast_type_func()
 
 
-class SqlEscaper():
+class SqlEscaper:
     """ Isolate and sqlize the value before executing.
 
     """
@@ -66,7 +66,7 @@ class SqlEscaper():
             type_name == 'str': lambda: value.replace("'", "''"),
             type_name in ('list', 'tuple', 'set'): lambda: ', '.join([cls.escape_literal(item) for item in value])
         }.get(True)
-        
+
         if escape_literal_func is None:
             raise ValueError(f'Type "{value}" unsupported yet')
 
@@ -115,8 +115,8 @@ class QueryFormatter(string.Formatter):
         """ Redifined with exception handling during variable processing. Also, the method is prettier. """
         if recursion_depth < 0:
             raise ValueError('Max string recursion exceeded')
-        
-        result = list()
+
+        result = []
         for literal_text, field_name, format_spec, transform in self.parse(format_string):
 
             # add the literal text
@@ -126,10 +126,10 @@ class QueryFormatter(string.Formatter):
             #  skip iteration if aint no value of a field
             if field_name is None:
                 continue
-            
+
             # handle arg indexing when empty field_names are given.
             if (
-                field_name == str and auto_arg_index is False or 
+                field_name == '' and auto_arg_index is False or
                 field_name.isdigit() and auto_arg_index
             ):
                 raise ValueError(
@@ -137,8 +137,8 @@ class QueryFormatter(string.Formatter):
                     'specification to automatic field '
                     'numbering'
                 )
-            
-            if field_name == str():
+
+            if field_name == '':
                 field_name = str(auto_arg_index)
                 auto_arg_index += 1
             elif field_name.isdigit():
@@ -212,7 +212,7 @@ class QueryFormatter(string.Formatter):
             field_item = self.format_default_value(value, spec)
         else:
             field_item = format_func()
-        
+
         return field_item
 
     @staticmethod
@@ -224,9 +224,9 @@ class QueryFormatter(string.Formatter):
 
         Returns:
             list: elems of string
-        """        
+        """
         return spec.split(':', 2)
-    
+
     @staticmethod
     def get_compared_value(param_list, value_cond):
         """ Get value from list of params or empty str in item.
@@ -237,8 +237,8 @@ class QueryFormatter(string.Formatter):
 
         Returns:
             tuple: output item
-        """        
-        return param_list[2] if value_cond else str(), False
+        """
+        return param_list[2] if value_cond else '', False
 
     def format_default_value(self, value, spec):
         """ Format the field value to default.
@@ -269,7 +269,7 @@ class QueryFormatter(string.Formatter):
             param_dict = dict(kwargs, **value_param)
 
         # there is no need to analyze the result of the internal format
-        return self.format(value or str(), **param_dict), True
+        return self.format(value or '', **param_dict), True
 
     def format_repeat_value(self, value, spec, kwargs):
         """ Format the field value with repeated value.
@@ -282,10 +282,10 @@ class QueryFormatter(string.Formatter):
             tuple: output item
         """
         if not value:
-            return str(), False
+            return '', False
 
         param_list = self.get_param_list(spec)
-        res_list = list()
+        res_list = []
 
         if isinstance(value, dict):
             for key, item in value.items():
@@ -312,14 +312,14 @@ class QueryFormatter(string.Formatter):
         """
         param_list = self.get_param_list(spec)
         item_list = param_list[1].split(',')
-        
+
         if is_contained:
             item_value = param_list[2]
-            def_value = str()
+            def_value = ''
         else:
-            item_value = str()
+            item_value = ''
             def_value = param_list[2]
-        
+
         if isinstance(value, list):
             item = item_value if any(
                 item_value in map(
@@ -426,7 +426,7 @@ class QueryFormatter(string.Formatter):
         Returns:
             tuple: output item
         """
-        return spec.partition(':')[-1] if value else str(), False
+        return spec.partition(':')[-1] if value else '', False
 
     @staticmethod
     def format_not_if_value(value, spec):
@@ -439,7 +439,7 @@ class QueryFormatter(string.Formatter):
         Returns:
             tuple: output item
         """
-        return spec.partition(':')[-1] if not value else str(), False
+        return spec.partition(':')[-1] if not value else '', False
 
     def format_tmpl_value(self, value):
         """ Format the field value if the value is a template. Format query with trimmed quotes.
@@ -450,8 +450,8 @@ class QueryFormatter(string.Formatter):
         Returns:
             tuple: output item
         """
-        return super(QueryFormatter, self).format_field(value or str(), str()), True
-    
+        return super(QueryFormatter, self).format_field(value or '', ''), True
+
     def format_field_name(self, value):
         """ Format string as a valid field name.
 
@@ -461,4 +461,5 @@ class QueryFormatter(string.Formatter):
         Returns:
             tuple: output item
         """
-        return super(QueryFormatter, self).format_field(value, str()), True
+        ans = super(QueryFormatter, self).format_field(value, '')
+        return f'"{ans}"', True

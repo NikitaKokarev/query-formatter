@@ -3,10 +3,11 @@
 """
 __author__ = 'kokarev.nv'
 
-import unittest
 import uuid
 from datetime import datetime, date
-from .query_formatter import cast_to_type, SqlEscaper, QueryFormatter
+import unittest
+
+from . import cast_to_type, SqlEscaper, QueryFormatter
 
 QF = QueryFormatter(SqlEscaper())
 
@@ -125,12 +126,12 @@ class TestQueryFormatterMethods(unittest.TestCase):
         pattern0 = """SELECT_BLOCK,FROM_BLOCK,WHERE_BLOCK({some_value1:if:... AND TRUE ...} AND {some_value2:in:True,False,None:... AND TRUE ...})"""
         tmpl = """
             SELECT_BLOCK,
-            FROM_BLOCK, 
+            FROM_BLOCK,
             WHERE_BLOCK({pattern0:include})
         """
         ans_tmpl = """
             SELECT_BLOCK,
-            FROM_BLOCK, 
+            FROM_BLOCK,
             WHERE_BLOCK(SELECT_BLOCK,FROM_BLOCK,WHERE_BLOCK(... AND TRUE ... AND ... AND TRUE ...))
         """
         kwargs = {
@@ -160,7 +161,7 @@ class TestQueryFormatterMethods(unittest.TestCase):
         kwargs = {
             'person_id': 'PersonId'
         }
-        ans_tmpl = 'SELECT * FROM Contractor WHERE "OurClient" IS TRUE GROUP BY PersonId'
+        ans_tmpl = 'SELECT * FROM Contractor WHERE "OurClient" IS TRUE GROUP BY "PersonId"'
         self.assertEqual(
             QF.format(tmpl, **kwargs),
             ans_tmpl
